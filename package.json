@@ -1,0 +1,47 @@
+{
+  "name": "browser-plan",
+  "version": "0.1.0",
+  "description": "Local stdio MCP server that opens a browser form so the user can answer questions, via URL-mode elicitation.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ramybenaroya/browser-plan.git"
+  },
+  "bin": {
+    "browser-plan": "./bin/browser-plan.mjs"
+  },
+  "files": [
+    "bin",
+    "projects",
+    "!projects/**/*.test.ts",
+    "!projects/ask-user-app/examples",
+    "tsconfig.json",
+    "README.md",
+    "ARCHITECTURE.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node bin/browser-plan.mjs",
+    "serve": "tsx projects/mcp/server.ts",
+    "open-app": "tsx scripts/open-app.ts",
+    "retro": "tsx projects/plans-retro/src/server.ts",
+    "prepublishOnly": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "cors": "^2.8.6",
+    "ejs": "^3.1.10",
+    "express": "^4.22.2",
+    "tsx": "^4.22.4",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.25",
+    "@types/node": "^22.19.19",
+    "typescript": "^5.9.3"
+  }
+}

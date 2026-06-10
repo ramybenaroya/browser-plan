@@ -1,0 +1,54 @@
+<%
+  // The embedded form lays option illustrations in a side panel only above its
+  // 992px breakpoint; the iframe is as wide as this page's container. So when a
+  // questionnaire has illustrations, render the wide container (≥992px iframe)
+  // to get the side-by-side layout — mirroring how the live form widens its card.
+  const hasIllustrations = ask.input.questions.some(
+    (q) => (q.kind === "single" || q.kind === "multi") && (q.options || []).some((o) => o.markdown),
+  );
+%>
+<%- include("partials/head", { title: title, wide: hasIllustrations }) %>
+
+<nav class="crumbs">
+  <a href="/">Sessions</a> <span>/</span>
+  <a href="/sessions/<%= sessionId %>"><%= sessionTitle %></a> <span>/</span>
+  <%= ask.title || "Questionnaire" %>
+</nav>
+<h1 class="page-title"><%= ask.title || "Questionnaire" %></h1>
+<p class="dim">
+  <span class="badge badge-<%= ask.status %>"><%= ask.status %></span>
+  · asked <%= new Date(ask.createdAt).toLocaleString() %>
+  <% if (ask.answeredAt) { %> · resolved <%= new Date(ask.answeredAt).toLocaleString() %><% } %>
+</p>
+
+<% if (ask.status !== "answered") { %>
+  <div class="notice">
+    This questionnaire was not answered (<strong><%= ask.status %></strong><%
+      if (ask.outcome && ask.outcome.detail) { %>: <%= ask.outcome.detail %><%
+      } else if (ask.outcome && ask.outcome.action) { %>: <%= ask.outcome.action %><%
+      } %>). Questions are shown without answers.
+  </div>
+<% } %>
+
+<%# The questionnaire is rendered by the live ask-user form (single source of
+    truth), embedded read-only and headerless in a same-origin iframe. It fetches
+    the spec + stored answers from spec.json and reports its height so we can size
+    the frame (no inner scrollbar). Same origin → it shares the theme/palette. %>
+<iframe
+  class="q-embed"
+  title="Questionnaire"
+  src="/ui/index.html?embed=1&src=/sessions/<%= sessionId %>/q/<%= askId %>/spec.json"
+></iframe>
+<script>
+  (function () {
+    var frame = document.querySelector(".q-embed");
+    window.addEventListener("message", function (e) {
+      if (e.source !== frame.contentWindow) return;
+      if (e.data && e.data.type === "browser-plan:embed-height" && typeof e.data.height === "number") {
+        frame.style.height = e.data.height + "px";
+      }
+    });
+  })();
+</script>
+
+<%- include("partials/foot") %>

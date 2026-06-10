@@ -1,0 +1,19 @@
+<%- include("partials/head", { title: title }) %>
+
+<nav class="crumbs">
+  <a href="/">Sessions</a> <span>/</span>
+  <a href="/sessions/<%= sessionId %>"><%= sessionTitle %></a> <span>/</span>
+  Plan v<%= meta.version %>
+</nav>
+<h1 class="page-title"><%= meta.title || ("Plan v" + meta.version) %></h1>
+<p class="dim">Version <%= meta.version %> · <%= new Date(meta.createdAt).toLocaleString() %> · <%= meta.bytes %> bytes</p>
+
+<article class="card md-card">
+  <%# Raw markdown handed to the client as a script-safe JSON string; rendered by
+      retro-client.js with the same marked/mermaid/highlight/DOMPurify pipeline
+      as the form. The `<` escape prevents a `</script>` breakout. %>
+  <script type="application/json" class="md-src"><%- JSON.stringify(markdown).replace(/</g, "\\u003c") %></script>
+  <div class="markdown" data-md></div>
+</article>
+
+<%- include("partials/foot") %>

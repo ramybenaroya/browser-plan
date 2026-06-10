@@ -1,0 +1,52 @@
+<%- include("partials/head", { title: title }) %>
+
+<nav class="crumbs"><a href="/">Sessions</a> <span>/</span> <%= session.title || session.sessionId %></nav>
+<h1 class="page-title"><%= session.title || "Untitled session" %></h1>
+<% if (session.intent) { %><p class="intent"><%= session.intent %></p><% } %>
+
+<dl class="meta">
+  <% if (session.projectPath) { %><div><dt>Project</dt><dd title="<%= session.projectPath %>"><%= basename(session.projectPath) %></dd></div><% } %>
+  <div><dt>Session id</dt><dd class="mono"><%= session.sessionId %></dd></div>
+  <div><dt>Created</dt><dd><%= new Date(session.createdAt).toLocaleString() %></dd></div>
+  <div><dt>Last updated</dt><dd><%= new Date(session.updatedAt).toLocaleString() %></dd></div>
+</dl>
+
+<section class="block">
+  <h2>Questionnaires <span class="count"><%= session.asks.length %></span></h2>
+  <% if (session.asks.length === 0) { %>
+    <p class="empty">No questionnaires were asked in this session.</p>
+  <% } else { %>
+    <ul class="cards">
+      <% session.asks.forEach((a) => { %>
+        <li class="row">
+          <a class="row-main" href="/sessions/<%= session.sessionId %>/q/<%= a.askId %>">
+            <span class="row-title"><%= a.title || "Questionnaire" %></span>
+            <span class="badge badge-<%= a.status %>"><%= a.status %></span>
+          </a>
+          <span class="row-date"><%= new Date(a.createdAt).toLocaleString() %></span>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</section>
+
+<section class="block">
+  <h2>Plans <span class="count"><%= session.plans.length %></span></h2>
+  <% if (session.plans.length === 0) { %>
+    <p class="empty">No plans saved in this session yet.</p>
+  <% } else { %>
+    <ul class="cards">
+      <% session.plans.slice().sort((a, b) => b.version - a.version).forEach((p) => { %>
+        <li class="row">
+          <a class="row-main" href="/sessions/<%= session.sessionId %>/plans/<%= p.version %>">
+            <span class="row-title">v<%= p.version %><% if (p.title) { %> · <%= p.title %><% } %></span>
+            <% if (p.version === session.latestPlanVersion) { %><span class="badge badge-latest">latest</span><% } %>
+          </a>
+          <span class="row-date"><%= new Date(p.createdAt).toLocaleString() %></span>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</section>
+
+<%- include("partials/foot") %>

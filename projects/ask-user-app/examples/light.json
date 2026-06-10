@@ -1,0 +1,19 @@
+{
+  "title": "Quick check-in",
+  "questions": [
+    {
+      "id": "name",
+      "kind": "text",
+      "label": "What should we call this project?",
+      "placeholder": "e.g. Aurora",
+      "required": true
+    },
+    {
+      "id": "stage",
+      "kind": "single",
+      "label": "What stage is it at?",
+      "options": ["Idea", "Prototype", "In production"],
+      "required": true
+    }
+  ]
+}

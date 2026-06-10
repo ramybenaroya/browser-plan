@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="color-scheme" content="dark light" />
+    <title>browser-plan</title>
+    <!-- Apply the saved theme + palette before first paint to avoid a flash of
+         the wrong colors. Mirrors the logic in theme.js (kept inline + tiny so
+         it runs synchronously, before the stylesheet is applied). -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("browser-plan-theme");
+          if (t) document.documentElement.dataset.theme = t;
+          document.documentElement.dataset.palette =
+            localStorage.getItem("browser-plan-palette") || "sage";
+        } catch (e) {
+          document.documentElement.dataset.palette = "sage";
+        }
+      })();
+    </script>
+    <!-- Relative (not /favicon.svg or /styles.css) so the page works both at
+         /ask on the live callback server and when plans-retro serves it
+         under /ui. -->
+    <link rel="icon" href="favicon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.3.1",
+          "react-dom": "https://esm.sh/react-dom@18.3.1?deps=react@18.3.1",
+          "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?deps=react@18.3.1",
+          "htm/react": "https://esm.sh/htm@3.1.1/react?deps=react@18.3.1",
+          "@tailwindcss/browser": "https://esm.sh/@tailwindcss/browser@4",
+
+          "marked": "https://esm.sh/marked@12",
+          "mermaid": "https://esm.sh/mermaid@11",
+          "highlight.js": "https://esm.sh/highlight.js@11",
+          "dompurify": "https://esm.sh/dompurify@3"
+        }
+      }
+    </script>
+    <!-- Tailwind theme tokens map onto the CSS variables in styles.css, so the
+         utilities follow the same automatic dark/light (prefers-color-scheme)
+         palette as the rest of the page. -->
+    <style type="text/tailwindcss">
+      @theme {
+        --color-bg: var(--bg);
+        --color-surface: var(--bg-elev);
+        --color-card: var(--card);
+        --color-line: var(--border);
+        --color-line-strong: var(--border-strong);
+        --color-fg: var(--text);
+        --color-dim: var(--text-dim);
+        --color-accent: var(--accent);
+        --color-accent-hover: var(--accent-hover);
+        --color-accent-soft: var(--accent-soft);
+        --color-danger: var(--danger);
+        --radius-ctl: var(--radius-sm);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="appbar">
+      <span class="brand"><span class="brand-logo" aria-hidden="true"></span>browser-plan</span>
+      <div class="theme-controls" id="theme-controls"></div>
+    </header>
+    <main class="card" id="root" aria-live="polite">
+      <div class="state" id="loading">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Loading your question…</p>
+      </div>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

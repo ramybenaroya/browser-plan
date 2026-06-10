@@ -1,0 +1,52 @@
+{
+  "title": "Project kickoff preferences",
+  "introTitle": "Kickoff",
+  "intro": "# Project kickoff\n\nA few quick questions to set up your workspace. Here's the shape of what we're configuring:\n\n- **Workspace** — name and primary language\n- **Integrations** — what to wire up on day one\n- **Priority** — how urgent this is\n\n```mermaid\nflowchart LR\n  A[Kickoff] --> B[Configure]\n  B --> C[Build]\n  C --> D[Ship]\n```\n\nThe generated config will look roughly like:\n\n```ts\ntype Workspace = {\n  name: string;\n  language: \"TypeScript\" | \"Go\" | \"Rust\" | \"Python\";\n  integrations: string[];\n};\n```\n",
+  "questions": [
+    {
+      "id": "project_name",
+      "kind": "text",
+      "label": "Project name",
+      "placeholder": "e.g. Aurora",
+      "required": true,
+      "tab": "Workspace"
+    },
+    {
+      "id": "summary",
+      "kind": "longtext",
+      "label": "One-paragraph summary",
+      "placeholder": "What are we building?",
+      "tab": "Workspace"
+    },
+    {
+      "id": "language",
+      "kind": "single",
+      "label": "Primary language",
+      "required": true,
+      "tab": "Workspace",
+      "options": [
+        { "value": "TypeScript", "markdown": "### TypeScript\n\nFull-stack web with strong typing and a huge ecosystem.\n\n```ts\nconst greet = (name: string) => `hi ${name}`;\n```" },
+        { "value": "Go", "markdown": "### Go\n\nFast, simple, and great for services and CLIs." },
+        { "value": "Rust", "markdown": "### Rust\n\nMemory-safe systems language with a steeper learning curve." },
+        { "value": "Python", "markdown": "### Python\n\nUbiquitous for scripting, data, and ML." }
+      ]
+    },
+    {
+      "id": "integrations",
+      "kind": "multi",
+      "label": "Integrations to enable",
+      "options": ["GitHub", "Slack", "Linear", "PagerDuty"],
+      "tab": "Integrations"
+    },
+    {
+      "id": "priority",
+      "kind": "scale",
+      "label": "Priority (1 = low, 5 = high)",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "required": true,
+      "tab": "Priority"
+    }
+  ]
+}

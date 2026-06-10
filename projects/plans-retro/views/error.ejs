@@ -1,0 +1,9 @@
+<%- include("partials/head", { title: title }) %>
+
+<div class="card error-card">
+  <h1 class="page-title"><%= status %></h1>
+  <p class="dim"><%= message %></p>
+  <p><a class="back" href="/">← All sessions</a></p>
+</div>
+
+<%- include("partials/foot") %>

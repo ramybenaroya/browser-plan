@@ -1,0 +1,71 @@
+<%- include("partials/head", { title: title, wide: true }) %>
+
+<h1 class="page-title">Sessions</h1>
+<p class="dim">Every browser-plan planning session, newest activity first.</p>
+
+<% if (sessions.length === 0) { %>
+  <p class="empty">No browser-plan sessions yet. Start one with <code>init_browser_plan_session</code>.</p>
+<% } else { %>
+  <div class="list-toolbar">
+    <div class="toolbar-filters">
+      <input id="session-search" class="search" type="search" autocomplete="off"
+             placeholder="Search name, id, or intent…" aria-label="Search sessions" />
+      <select id="project-filter" class="filter-select" aria-label="Filter by project">
+        <option value="__all__">All projects</option>
+        <% projects.forEach((p) => { %><option value="<%= p %>"><%= p %></option><% }) %>
+        <% if (hasNoProject) { %><option value="<%= NO_PROJECT %>">No project</option><% } %>
+      </select>
+    </div>
+    <div class="toolbar-actions">
+      <span id="selected-count" class="dim" aria-live="polite"></span>
+      <button id="bulk-delete" class="btn-danger" type="button" disabled>Delete selected</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="sessions">
+      <thead>
+        <tr>
+          <th class="t-select"><input type="checkbox" id="select-all" aria-label="Select all sessions"></th>
+          <th>Session</th>
+          <th>Project</th>
+          <th>Intent</th>
+          <th>Questionnaires</th>
+          <th>Plans</th>
+          <th>Last updated</th>
+          <th class="t-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% sessions.forEach((s) => { %>
+          <tr data-id="<%= s.sessionId %>"
+              data-project="<%= projectKeyOf(s.projectPath) %>"
+              data-search="<%= `${s.title || 'Untitled session'} ${s.sessionId} ${s.intent || ''} ${s.projectPath ? basename(s.projectPath) : ''}`.toLowerCase() %>"
+              onclick="location.href='/sessions/<%= s.sessionId %>'">
+            <td class="t-select" onclick="event.stopPropagation()">
+              <input type="checkbox" class="row-select" aria-label="Select session">
+            </td>
+            <td class="t-title">
+              <a href="/sessions/<%= s.sessionId %>"><%= s.title || "Untitled session" %></a>
+              <div class="t-id"><%= s.sessionId %></div>
+            </td>
+            <td class="t-project" title="<%= s.projectPath || '' %>"><%= s.projectPath ? basename(s.projectPath) : "—" %></td>
+            <td class="t-intent"><%= s.intent ? (s.intent.length > 140 ? s.intent.slice(0, 140) + "…" : s.intent) : "—" %></td>
+            <td class="t-num"><%= s.askCount %></td>
+            <td class="t-num"><%= s.planCount %><% if (s.latestPlanVersion) { %> <span class="dim">· v<%= s.latestPlanVersion %></span><% } %></td>
+            <td class="t-date"><%= new Date(s.updatedAt).toLocaleString() %></td>
+            <td class="t-actions" onclick="event.stopPropagation()">
+              <button type="button" class="btn-danger btn-row-delete"
+                      data-title="<%= s.title || 'Untitled session' %>">Delete</button>
+            </td>
+          </tr>
+        <% }) %>
+        <tr id="no-results" hidden>
+          <td colspan="8" class="empty">No sessions match your search.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <script type="module" src="/sessions-client.js"></script>
+<% } %>
+
+<%- include("partials/foot") %>

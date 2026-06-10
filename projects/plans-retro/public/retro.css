@@ -1,0 +1,472 @@
+/* Layout chrome for the read-only plans retro viewer. The theme tokens,
+   .markdown prose, highlight.js, mermaid, and keyframes (rise/fade) all come
+   from the reused /ui/styles.css; this file only adds the wide page chrome and
+   the list/table styling, using the same CSS variables. */
+
+/* Undo the form app's single centered card layout for the wider retro view. */
+body.retro {
+  display: block;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px clamp(16px, 4vw, 40px);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text);
+  font-weight: 650;
+  text-decoration: none;
+  font-size: 1.05rem;
+}
+.brand span {
+  color: var(--text-dim);
+  font-weight: 500;
+  /* inline-flex trims the whitespace between the brand name and this span, so
+     restore the word space that the logo's own margin-right handles for the mark. */
+  margin-left: 0.25em;
+}
+
+.container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 40px) clamp(16px, 4vw, 40px) 72px;
+  animation: rise 0.35s ease both;
+}
+/* The sessions list is a wide management view; the reading pages stay at 1000px. */
+.container--wide {
+  max-width: 1320px;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 680;
+  margin: 0 0 6px;
+}
+
+.crumbs {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin: 0 0 14px;
+}
+.crumbs a {
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.crumbs a:hover {
+  color: var(--accent);
+}
+.crumbs span {
+  margin: 0 6px;
+  opacity: 0.55;
+}
+
+.intent {
+  color: var(--text-dim);
+  margin: 0 0 18px;
+  max-width: 72ch;
+}
+.dim {
+  color: var(--text-dim);
+}
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+}
+.empty {
+  color: var(--text-dim);
+}
+
+/* Sessions list toolbar: fuzzy search (left) + bulk actions (right). */
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 16px;
+}
+.toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+.toolbar-actions #selected-count {
+  font-size: 0.85rem;
+}
+.search {
+  flex: 1;
+  min-width: 0;
+  max-width: 420px;
+  padding: 9px 13px;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.search::placeholder {
+  color: var(--text-dim);
+}
+.search:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Project filter dropdown — mirrors the search input's chrome. */
+.filter-select {
+  flex: none;
+  max-width: 220px;
+  padding: 9px 13px;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.filter-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Danger button — per-row + bulk delete. */
+.btn-danger {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 560;
+  color: var(--danger);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.btn-danger:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+.btn-danger:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.btn-row-delete {
+  padding: 4px 12px;
+}
+
+/* Sessions table */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+table.sessions {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+table.sessions th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+table.sessions td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+table.sessions tbody tr:last-child td {
+  border-bottom: 0;
+}
+table.sessions tbody tr {
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+table.sessions tbody tr:hover {
+  background: var(--bg-elev);
+}
+.t-title a {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.t-title a:hover {
+  color: var(--accent);
+}
+.t-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+.t-project {
+  color: var(--text);
+  font-weight: 560;
+  white-space: nowrap;
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.t-intent {
+  color: var(--text-dim);
+  max-width: 40ch;
+}
+.t-num {
+  text-align: center;
+  white-space: nowrap;
+}
+.t-date {
+  white-space: nowrap;
+  color: var(--text-dim);
+}
+.t-select {
+  width: 1%;
+  text-align: center;
+  white-space: nowrap;
+}
+.t-select input,
+#select-all {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  vertical-align: middle;
+}
+.t-actions {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+table.sessions tbody tr.selected {
+  background: var(--accent-soft);
+}
+table.sessions tbody tr.selected:hover {
+  background: var(--accent-soft);
+}
+
+/* Session metadata */
+dl.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  margin: 16px 0 28px;
+  padding: 0;
+}
+dl.meta div {
+  margin: 0;
+}
+dl.meta dt {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+dl.meta dd {
+  margin: 3px 0 0;
+}
+
+/* Section blocks + list rows */
+.block {
+  margin: 0 0 30px;
+}
+.block h2 {
+  font-size: 1.05rem;
+  font-weight: 640;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.block h2 .count {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+ul.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  transition: border-color 0.12s ease;
+}
+.row:hover {
+  border-color: var(--accent);
+}
+.row-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+}
+.row-title {
+  font-weight: 560;
+}
+.row-date {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+/* Status / version badges */
+.badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+}
+/* Status colors track the active palette via its --answered / --danger tokens
+   (each is a light-dark() pair, so they stay legible on both surfaces); the
+   border/background washes are mixed from the same token. */
+.badge-answered {
+  color: var(--answered);
+  border-color: color-mix(in srgb, var(--answered) 42%, transparent);
+  background: color-mix(in srgb, var(--answered) 12%, transparent);
+}
+.badge-pending {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.badge-timeout,
+.badge-declined,
+.badge-error {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 42%, transparent);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+.badge-latest {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* Questionnaire */
+.notice {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin: 18px 0 22px;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+/* The questionnaire body is the live ask-user form embedded read-only in a
+   same-origin iframe; it reports its content height so we size the frame and
+   avoid an inner scrollbar. */
+.q-embed {
+  display: block;
+  width: 100%;
+  border: 0;
+  margin: 4px 0 0;
+}
+
+/* Card tweaks: the reused .card is a 640px centered form card; widen it here. */
+.md-card {
+  max-width: none;
+  margin: 0 0 26px;
+  animation: none; /* the .container already plays the rise entrance */
+}
+/* Keep the card's bottom padding even (markdown's last block carries a margin). */
+.md-card .markdown > :last-child {
+  margin-bottom: 0;
+}
+.md-title {
+  font-size: 1.05rem;
+  font-weight: 640;
+  margin: 0 0 12px;
+}
+.error-card {
+  max-width: 520px;
+  margin: clamp(24px, 12vh, 120px) auto 0;
+}
+.back {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* Diagram lightbox (mermaid click-to-zoom), styled like the form's modal. */
+.retro-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vw, 48px);
+  z-index: 50;
+  cursor: zoom-out;
+  animation: fade 0.18s ease both;
+}
+.retro-lightbox-inner {
+  /* Real dimensions (not max-*) so the SVG has space to scale into; a
+     max-width-only box would shrink-wrap to the diagram's tiny natural size. */
+  width: min(94vw, 1600px);
+  height: 88vh;
+  display: grid;
+  place-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  overflow: auto;
+  box-shadow: var(--shadow);
+}
+/* Fill the box; mermaid's viewBox + default preserveAspectRatio scales the
+   diagram up as large as it can while staying fully visible and centered. */
+.retro-lightbox-inner svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

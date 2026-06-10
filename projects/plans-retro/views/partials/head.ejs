@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="color-scheme" content="dark light" />
+    <title><%= title %></title>
+    <!-- Apply the saved theme + palette before first paint to avoid a flash of
+         the wrong colors (mirrors theme.js; kept inline + tiny so it runs
+         synchronously before the stylesheets are applied). -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("browser-plan-theme");
+          if (t) document.documentElement.dataset.theme = t;
+          document.documentElement.dataset.palette =
+            localStorage.getItem("browser-plan-palette") || "sage";
+        } catch (e) {
+          document.documentElement.dataset.palette = "sage";
+        }
+      })();
+    </script>
+    <link rel="icon" href="/ui/favicon.svg" />
+    <!-- Theme + .markdown / highlight / mermaid styling, reused from the form app. -->
+    <link rel="stylesheet" href="/ui/styles.css" />
+    <link rel="stylesheet" href="/retro.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@tailwindcss/browser": "https://esm.sh/@tailwindcss/browser@4",
+          "marked": "https://esm.sh/marked@12",
+          "mermaid": "https://esm.sh/mermaid@11",
+          "highlight.js": "https://esm.sh/highlight.js@11",
+          "dompurify": "https://esm.sh/dompurify@3"
+        }
+      }
+    </script>
+    <!-- Maps Tailwind utility colors onto the styles.css theme vars, so the
+         reused option/answer classes follow the same dark/light palette. -->
+    <style type="text/tailwindcss">
+      @theme {
+        --color-bg: var(--bg);
+        --color-surface: var(--bg-elev);
+        --color-card: var(--card);
+        --color-line: var(--border);
+        --color-line-strong: var(--border-strong);
+        --color-fg: var(--text);
+        --color-dim: var(--text-dim);
+        --color-accent: var(--accent);
+        --color-accent-hover: var(--accent-hover);
+        --color-accent-soft: var(--accent-soft);
+        --color-danger: var(--danger);
+        --radius-ctl: var(--radius-sm);
+      }
+    </style>
+  </head>
+  <body class="retro">
+    <header class="topbar">
+      <a class="brand" href="/"><span class="brand-logo" aria-hidden="true"></span>browser-plan <span>· plans retro</span></a>
+      <div class="theme-controls" id="theme-controls"></div>
+    </header>
+    <main class="container<%= (typeof wide !== 'undefined' && wide) ? ' container--wide' : '' %>">
