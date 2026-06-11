@@ -19,9 +19,16 @@
 Planning a feature with an AI agent means a stream of decisions: pick a language,
 choose an approach, confirm a scope.
 
-In a terminal or chat those arrive as awkward numbered lists ("reply 1, 2, or 3…")
-or a wall of free text — easy to fat-finger the wrong option, easy to lose track
-of what you already answered.
+Modern harnesses ask these better than they used to — some pop a tidy
+multiple-choice picker instead of "reply 1, 2, or 3…". But it's still bound to the
+chat: one question at a time, terminal-width, and answered prompts scroll away.
+
+A form does what a chat can't: it lays **all** the questions out at once, in a
+layout built for choosing — radios, checkboxes, sliders, real text areas — so you
+see the whole decision, can revise an earlier answer before submitting, and never
+lose track of what you've decided. And handed a real page to render, the model
+shines — framing a decision with proper **Mermaid diagrams**, not ASCII art
+crammed into a code block.
 
 ## How
 
@@ -131,9 +138,9 @@ args = ["-y", "browser-plan"]
 
 </details>
 
-## Replay a session: `browser-plan retro`
+## The Retro Viewer
 
-The same package ships a read-only viewer that browses everything browser-plan
+A read-only viewer that browses everything browser-plan
 has saved — per session, the questions asked, the answers given, and every plan
 version:
 

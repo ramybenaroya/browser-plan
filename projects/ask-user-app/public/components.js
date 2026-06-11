@@ -503,6 +503,10 @@ export function App() {
   // show a stored questionnaire. `src` is a same-origin relative path the form
   // fetches instead of /spec?sid= — its payload carries `answers` (and status).
   const embed = useMemo(() => params.has("embed"), [params]);
+  // Demo (showcase) mode: the gh-pages site renders the form statically, with no
+  // callback server behind it. Submit resolves straight to the "done" state
+  // instead of POSTing to /submit (which wouldn't exist on a static host).
+  const demo = useMemo(() => params.has("demo"), [params]);
   const specSrc = useMemo(() => {
     const s = params.get("src");
     return s && s.startsWith("/") ? s : null;
@@ -578,6 +582,10 @@ export function App() {
   }, [embed]);
 
   const submit = useCallback(async () => {
+    if (demo) {
+      setPhase("done");
+      return;
+    }
     setSubmitting(true);
     setSubmitError("");
     try {
@@ -592,7 +600,7 @@ export function App() {
       setSubmitting(false);
       setSubmitError("Could not submit your answers. Please try again.");
     }
-  }, [sid, answers]);
+  }, [sid, answers, demo]);
 
   const tabs = useMemo(() => (spec ? buildTabs(spec) : []), [spec]);
 
