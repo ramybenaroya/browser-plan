@@ -1,0 +1,806 @@
+/* Theme tokens, page chrome, and the styling Tailwind utilities can't reach:
+   the agent-authored markdown/diagram HTML (injected at runtime), the diagram
+   lightbox, the loading/terminal states, and keyframes. The form controls
+   themselves are styled with Tailwind utilities in the components; the @theme
+   block in index.html maps Tailwind colors onto the variables below so both
+   follow the same automatic dark/light palette. */
+
+/* Theme model ------------------------------------------------------------- */
+/* Two independent axes live on <html>:
+   - data-theme   → light | dark | system   drives `color-scheme`, which is
+     what light-dark() below resolves against. "system" (or unset) follows the
+     OS; an explicit light/dark overrides it instantly.
+   - data-palette → sage (default) | indigo | ember   picks the color family.
+   Every color token is light-dark(<light>, <dark>) so one block serves both
+   modes. A tiny inline script in the HTML <head> sets these attributes before
+   first paint (see index.html / head.ejs) to avoid a flash of the wrong theme. */
+:root {
+  color-scheme: light dark; /* system / unset */
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+:root[data-theme="system"] {
+  color-scheme: light dark;
+}
+
+/* Palette-independent tokens. */
+:root {
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 10px 40px var(--shadow-color);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
+
+/* Sage Teal — the active default (bare :root + explicit data-palette). */
+:root,
+:root[data-palette="sage"] {
+  --bg: light-dark(#f3f7f5, #0c1116);
+  --bg-elev: light-dark(#ffffff, #121b1d);
+  --card: light-dark(#ffffff, #16201e);
+  --border: light-dark(#e3eae7, #25302f);
+  --border-strong: light-dark(#cdd8d4, #34423f);
+  --text: light-dark(#14201d, #e3e9e7);
+  --text-dim: light-dark(#54655f, #93a39e);
+  --accent: light-dark(#0d9488, #2dd4bf);
+  --accent-hover: light-dark(#0b7d73, #5fe3d3);
+  --accent-soft: light-dark(rgba(13, 148, 136, 0.1), rgba(45, 212, 191, 0.14));
+  --danger: light-dark(#c0392b, #f0857d);
+  --answered: light-dark(#047857, #34d399);
+  --shadow-color: light-dark(rgba(20, 24, 40, 0.12), rgba(0, 0, 0, 0.45));
+}
+
+/* Indigo Twilight — cool, faint violet undertone, soft periwinkle accent. */
+:root[data-palette="indigo"] {
+  --bg: light-dark(#f7f7fb, #0d0e16);
+  --bg-elev: light-dark(#ffffff, #14151f);
+  --card: light-dark(#ffffff, #181a26);
+  --border: light-dark(#e7e8f0, #272a39);
+  --border-strong: light-dark(#d2d5e2, #383c4f);
+  --text: light-dark(#1b1c28, #e6e7f0);
+  --text-dim: light-dark(#5c6075, #989db0);
+  --accent: light-dark(#5b54e0, #818cf8);
+  --accent-hover: light-dark(#4a43d4, #a5acff);
+  --accent-soft: light-dark(rgba(91, 84, 224, 0.1), rgba(129, 140, 248, 0.14));
+  --danger: light-dark(#d64a57, #f4737d);
+  --answered: light-dark(#047857, #34d399);
+  --shadow-color: light-dark(rgba(20, 24, 40, 0.12), rgba(0, 0, 0, 0.45));
+}
+
+/* Warm Ember — cozy, warm charcoal / cream neutrals, burnt-amber accent. */
+:root[data-palette="ember"] {
+  --bg: light-dark(#faf7f1, #16130f);
+  --bg-elev: light-dark(#fffdf9, #1e1a14);
+  --card: light-dark(#fffdf9, #221d16);
+  --border: light-dark(#ece4d6, #322b22);
+  --border-strong: light-dark(#ddd0bc, #463c2f);
+  --text: light-dark(#211c15, #ece6dd);
+  --text-dim: light-dark(#6b6052, #a89c8c);
+  --accent: light-dark(#c2622a, #f4a261);
+  --accent-hover: light-dark(#a14f1f, #f7b884);
+  --accent-soft: light-dark(rgba(194, 98, 42, 0.1), rgba(244, 162, 97, 0.14));
+  --danger: light-dark(#c0392b, #ef7a6d);
+  --answered: light-dark(#2f7d4f, #6cc08a);
+  --shadow-color: light-dark(rgba(20, 24, 40, 0.12), rgba(0, 0, 0, 0.45));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  --page-gutter: clamp(16px, 4vw, 40px);
+  min-height: 100vh;
+  background: radial-gradient(
+      1200px 600px at 50% -10%,
+      var(--bg-elev),
+      var(--bg) 60%
+    )
+    var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  /* Block flow: the page gutter lives here so the card gets side breathing room;
+     the sticky header cancels it with a negative inline margin (see .appbar) to
+     stay full-bleed, and the card centers within the padded box. */
+  display: block;
+  padding: 0 var(--page-gutter);
+}
+
+.card {
+  width: 100%;
+  max-width: 640px;
+  margin: clamp(16px, 6vh, 64px) auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: clamp(20px, 4vw, 36px);
+  animation: rise 0.35s ease both;
+}
+
+/* Tab layout. The card widens for the whole session when any tab uses the
+   option-illustration panel (.card--wide is toggled on #root by the App), so
+   switching tabs never jumps the card width; a session with no illustrations
+   keeps its readable single-column width. */
+.card--wide {
+  max-width: 1180px;
+  padding: clamp(24px, 3vw, 44px);
+}
+
+/* Tab strip */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 22px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.tab {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  margin-bottom: -1px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-dim);
+  font: inherit;
+  font-weight: 560;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.tab:hover {
+  color: var(--text);
+  background: var(--bg-elev);
+}
+.tab--active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.tab:focus-visible {
+  outline: none;
+  color: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--accent-soft);
+}
+.tab__dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Tab panel */
+.tabpanel {
+  animation: fade 0.18s ease both;
+}
+/* In a wide card, keep an intro / question-only panel readable rather than
+   letting it stretch to the full illustration width. */
+.card--wide .tabpanel:not(.tabpanel--split) {
+  max-width: 760px;
+}
+
+.tabpanel--split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 460px);
+  gap: clamp(28px, 3vw, 52px);
+  align-items: start;
+}
+
+/* The illustration panel for the focused option. Stays pinned while a long
+   question list scrolls past it. */
+.illus__inner {
+  position: sticky;
+  top: clamp(16px, 4vh, 40px);
+  padding: 16px 18px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  max-height: calc(100vh - clamp(32px, 8vh, 80px));
+  overflow: auto;
+}
+.illus__empty {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 992px) {
+  .card--wide {
+    max-width: 640px;
+  }
+  .card--wide .tabpanel:not(.tabpanel--split) {
+    max-width: none;
+  }
+  .tabpanel--split {
+    display: block;
+  }
+  .illus {
+    display: block;
+    margin-top: 24px;
+  }
+  .illus__inner {
+    position: static;
+    max-height: none;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Rendered markdown — the intro tab and the per-option illustration panel ---- */
+.markdown {
+  color: var(--text);
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown p {
+  margin: 0 0 12px;
+  color: var(--text-dim);
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  margin: 18px 0 8px;
+  line-height: 1.3;
+  font-weight: 620;
+  color: var(--text);
+}
+.markdown h1 {
+  font-size: 1.25rem;
+}
+.markdown h2 {
+  font-size: 1.12rem;
+}
+.markdown h3 {
+  font-size: 1rem;
+}
+.markdown h4 {
+  font-size: 0.92rem;
+}
+
+.markdown ul,
+.markdown ol {
+  margin: 0 0 12px;
+  padding-left: 22px;
+  color: var(--text-dim);
+}
+.markdown li {
+  margin: 4px 0;
+}
+
+.markdown a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.markdown a:hover {
+  text-decoration: underline;
+}
+
+.markdown blockquote {
+  margin: 0 0 12px;
+  padding: 4px 14px;
+  border-left: 3px solid var(--border-strong);
+  color: var(--text-dim);
+}
+
+.markdown hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 18px 0;
+}
+
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+  display: block;
+  overflow-x: auto;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid var(--border);
+  padding: 7px 10px;
+  text-align: left;
+}
+.markdown th {
+  background: var(--bg-elev);
+  font-weight: 600;
+}
+
+/* Inline code + code blocks */
+.markdown code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.86em;
+}
+.markdown :not(pre) > code {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+.markdown pre {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+}
+.markdown pre code {
+  display: block;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* Mermaid diagrams */
+.markdown .mermaid-diagram {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 12px;
+  padding: 14px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+}
+.markdown .mermaid-diagram svg,
+.markdown svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.markdown .mermaid-diagram.zoomable {
+  position: relative;
+  cursor: zoom-in;
+  transition: border-color 0.15s ease;
+}
+.markdown .mermaid-diagram.zoomable:hover,
+.markdown .mermaid-diagram.zoomable:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+.markdown .mermaid-diagram .expand-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--card);
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  pointer-events: none;
+}
+.markdown .mermaid-diagram.zoomable:hover .expand-badge,
+.markdown .mermaid-diagram.zoomable:focus-visible .expand-badge {
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* Diagram lightbox modal */
+.diagram-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 48px);
+  background: rgba(0, 0, 0, 0.66);
+  backdrop-filter: blur(3px);
+  animation: fade 0.15s ease both;
+}
+.diagram-modal__content {
+  /* Real dimensions (not max-*) so the SVG below has space to scale into;
+     a max-width-only box would shrink-wrap to the diagram's tiny natural size. */
+  width: min(94vw, 1600px);
+  height: 88vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: clamp(16px, 3vw, 32px);
+  animation: rise 0.2s ease both;
+}
+/* Fill the box; mermaid's viewBox + default preserveAspectRatio scales the
+   diagram up as large as it can while staying fully visible and centered. */
+.diagram-modal__content svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.diagram-modal__close {
+  position: fixed;
+  top: clamp(12px, 3vw, 28px);
+  right: clamp(12px, 3vw, 28px);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: var(--card);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.diagram-modal__close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Compact highlight.js theme, palette-independent. Each color is
+   light-dark(<light>, <dark>) so code follows the active light/dark mode. */
+.markdown .hljs-comment,
+.markdown .hljs-quote {
+  color: light-dark(#7a808c, #6b7385);
+  font-style: italic;
+}
+.markdown .hljs-keyword,
+.markdown .hljs-selector-tag,
+.markdown .hljs-meta .hljs-keyword {
+  color: light-dark(#8a2bd9, #c792ea);
+}
+.markdown .hljs-string,
+.markdown .hljs-attribute,
+.markdown .hljs-regexp,
+.markdown .hljs-addition {
+  color: light-dark(#2e7d32, #c3e88d);
+}
+.markdown .hljs-number,
+.markdown .hljs-literal,
+.markdown .hljs-type,
+.markdown .hljs-symbol {
+  color: light-dark(#c2410c, #f78c6c);
+}
+.markdown .hljs-title,
+.markdown .hljs-title.function_,
+.markdown .hljs-section {
+  color: light-dark(#1d4ed8, #82aaff);
+}
+.markdown .hljs-attr,
+.markdown .hljs-variable,
+.markdown .hljs-template-variable,
+.markdown .hljs-name,
+.markdown .hljs-selector-id,
+.markdown .hljs-selector-class {
+  color: light-dark(#9a6700, #ffcb6b);
+}
+.markdown .hljs-built_in,
+.markdown .hljs-class .hljs-title,
+.markdown .hljs-tag {
+  color: light-dark(#0e7490, #89ddff);
+}
+.markdown .hljs-deletion {
+  color: var(--danger);
+}
+.markdown .hljs-emphasis {
+  font-style: italic;
+}
+.markdown .hljs-strong {
+  font-weight: 700;
+}
+
+/* Loading / terminal states ---------------------------------------------- */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  padding: 30px 10px;
+  color: var(--text-dim);
+}
+
+.state p {
+  margin: 0;
+}
+
+.state.done .check {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  animation: pop 0.3s ease both;
+}
+
+.state.done h2,
+.state.error h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.25rem;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid var(--border-strong);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Header bar + theme controls ------------------------------------------------
+   Shared by both apps (the retro viewer loads this file at /ui/styles.css). The
+   form app uses .appbar for its new slim header; the retro viewer keeps its own
+   .topbar. Both drop .theme-controls on the right (margin-left:auto), holding
+   the palette <select> and the light/dark/system segmented toggle, all built
+   by theme.js. */
+.appbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  /* Span edge to edge by cancelling the body's horizontal page gutter, while
+     keeping its own content aligned to that gutter. */
+  margin: 0 calc(-1 * var(--page-gutter, clamp(16px, 4vw, 40px)));
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px var(--page-gutter, clamp(16px, 4vw, 40px));
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.appbar .brand {
+  color: var(--text);
+  font-weight: 650;
+  font-size: 1.05rem;
+  text-decoration: none;
+}
+/* Brand mark: the monochrome logo.svg recolored to the active accent via a CSS
+   mask, so it follows the palette (sage/indigo/ember) and gets light/dark
+   contrast for free from --accent's light-dark() values. Shared by both apps:
+   url(logo.svg) resolves relative to this stylesheet, so in the retro viewer
+   (which loads it as /ui/styles.css) it resolves to /ui/logo.svg. */
+.brand-logo {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: -0.22em;
+  margin-right: 0.5rem;
+  background-color: var(--accent);
+  -webkit-mask: url(logo.svg) center / contain no-repeat;
+  mask: url(logo.svg) center / contain no-repeat;
+}
+
+/* Embed mode (read-only form inside the plans-retro iframe): drop the header
+   and the page gutter/card chrome so the questionnaire fills the iframe — the
+   retro page already provides the surrounding chrome. */
+body.embed {
+  padding: 0;
+  background: none;
+  min-height: 0;
+}
+body.embed .appbar {
+  display: none;
+}
+body.embed .card {
+  margin: 0;
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: clamp(16px, 3vw, 28px);
+  animation: none;
+}
+
+.theme-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* Cog button that opens the settings popover. */
+.settings-btn {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: var(--text-dim);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.settings-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.settings-btn:hover {
+  color: var(--text);
+}
+.settings-btn:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Native popover holding the theme + palette controls. */
+.settings-popover {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  min-width: 240px;
+  padding: 16px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+}
+/* Lay out + reveal only when open; the UA `[popover]:not(:popover-open)`
+   rule keeps it `display:none` while closed (don't set display in the base
+   rule or it overrides that hide). */
+.settings-popover:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fade 0.15s ease both;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.settings-row__label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Palette dropdown — mirrors the retro viewer's .filter-select chrome. */
+.palette-select {
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.palette-select:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Segmented light / dark / system toggle. */
+.theme-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.theme-seg__btn {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.theme-seg__btn svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+.theme-seg__btn:hover {
+  color: var(--text);
+}
+.theme-seg__btn[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.theme-seg__btn:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent-soft);
+}

@@ -1,0 +1,77 @@
+{
+  "title": "Project kickoff preferences",
+  "introTitle": "Kickoff",
+  "intro": "# Project kickoff\n\nA few quick questions to set up your workspace. Here's the shape of what we're configuring:\n\n- **Workspace** — name and primary language\n- **Integrations** — what to wire up on day one\n- **Priority** — how urgent this is\n\n```mermaid\nflowchart LR\n  A[Kickoff] --> B[Configure]\n  B --> C[Build]\n  C --> D[Ship]\n```\n\nThe generated config will look roughly like:\n\n```ts\ntype Workspace = {\n  name: string;\n  language: \"TypeScript\" | \"Go\" | \"Rust\" | \"Python\";\n  integrations: string[];\n};\n```\n",
+  "questions": [
+    {
+      "id": "project_name",
+      "label": "Project name",
+      "required": true,
+      "tab": "Workspace",
+      "kind": "text",
+      "placeholder": "e.g. Aurora"
+    },
+    {
+      "id": "summary",
+      "label": "One-paragraph summary",
+      "tab": "Workspace",
+      "kind": "longtext",
+      "placeholder": "What are we building?"
+    },
+    {
+      "id": "language",
+      "label": "Primary language",
+      "required": true,
+      "tab": "Workspace",
+      "kind": "single",
+      "options": [
+        {
+          "value": "TypeScript",
+          "markdown": "### TypeScript\n\nFull-stack web with strong typing and a huge ecosystem.\n\n```ts\nconst greet = (name: string) => `hi ${name}`;\n```"
+        },
+        {
+          "value": "Go",
+          "markdown": "### Go\n\nFast, simple, and great for services and CLIs."
+        },
+        {
+          "value": "Rust",
+          "markdown": "### Rust\n\nMemory-safe systems language with a steeper learning curve."
+        },
+        {
+          "value": "Python",
+          "markdown": "### Python\n\nUbiquitous for scripting, data, and ML."
+        }
+      ]
+    },
+    {
+      "id": "integrations",
+      "label": "Integrations to enable",
+      "tab": "Integrations",
+      "kind": "multi",
+      "options": [
+        {
+          "value": "GitHub"
+        },
+        {
+          "value": "Slack"
+        },
+        {
+          "value": "Linear"
+        },
+        {
+          "value": "PagerDuty"
+        }
+      ]
+    },
+    {
+      "id": "priority",
+      "label": "Priority (1 = low, 5 = high)",
+      "required": true,
+      "tab": "Priority",
+      "kind": "scale",
+      "min": 1,
+      "max": 5,
+      "step": 1
+    }
+  ]
+}

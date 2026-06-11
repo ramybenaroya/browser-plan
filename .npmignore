@@ -1,0 +1,23 @@
+# OS / editor junk
+.DS_Store
+*.log
+
+# Secrets & local config (never publish)
+.npmrc
+.env
+.env.*
+
+# Tooling / repo-only
+.git
+.gitignore
+.agents
+.claude
+scripts
+skills
+skills-lock.json
+logo.html
+logo-readme.png
+
+# Source-only assets that don't ship
+*.test.ts
+examples/

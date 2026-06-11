@@ -1,0 +1,198 @@
+{
+  "title": "Orders migration — design review",
+  "introTitle": "Overview",
+  "intro": "# Migration design review\n\nWe're moving the **orders** path off the legacy monolith. Please review the\nproposed architecture and weigh in below.\n\n## Why now\n\n> The monolith's deploy time has crept past 40 minutes and a single bad\n> migration now blocks every team. Splitting orders out buys us independent\n> deploys and a clean data boundary.\n\nSee the [tracking issue](https://example.com/issues/1234) for background.\n\nThe shape of the change, sketched quickly:\n\n```text\n        Before  ───────────────▶  After\n\n   ┌────────────────────┐      ┌───────────────────────────┐\n   │      Monolith       │      │         API Gateway         │\n   │  ┌───────────────┐  │      └───┬───────────┬───────────┬─┘\n   │  │ Orders        │  │          │           │           │\n   │  │ Inventory     │  │       ┌──▼──┐     ┌──▼──┐     ┌──▼──┐\n   │  │ Billing       │  │       │Order│     │ Inv │     │Bill │\n   │  └───────────────┘  │       └──┬──┘     └──┬──┘     └──┬──┘\n   │    single deploy    │        (DB)        (DB)        (DB)\n   └────────────────────┘      independent deploys per team\n```\n\n## Target architecture\n\n```mermaid\nflowchart TD\n  A[Client] --> B{Authenticated?}\n  B -- yes --> C[API Gateway]\n  B -- no --> D[Login Service]\n  D --> B\n  C --> E[Orders Service]\n  C --> F[Inventory Service]\n  C --> G[Billing Service]\n  E --> H[(Orders DB)]\n  F --> I[(Inventory DB)]\n  G --> J[(Billing DB)]\n```\n\n## Request pipeline\n\n```mermaid\nflowchart LR\n  A[Ingest] --> B[Parse] --> C[Validate] --> D[Transform] --> E[Enrich] --> F[Aggregate] --> G[Load] --> H[(Warehouse)]\n```\n\n## Rollout phases\n\n| Phase | Scope                     | Risk   |\n| ----- | ------------------------- | ------ |\n| 1     | Read path behind a flag   | Low    |\n| 2     | Dual-write orders         | Medium |\n| 3     | Cut over writes           | High   |\n| 4     | Decommission legacy       | Low    |\n\n…and how those phases land over time:\n\n```text\n  Phase 1      Phase 2        Phase 3         Phase 4\n  read path    dual-write     cut over        decommission\n  (flag)       both stores    writes          legacy\n  ───●──────────●──────────────●───────────────●─────────────▶ time\n     low         medium         HIGH            low\n     risk        risk           risk            risk\n```\n\n## Touch points\n\nThe new client call:\n\n```ts\nasync function createOrder(input: OrderInput): Promise<Order> {\n  const res = await gateway.post(\"/orders\", input);\n  return res.data;\n}\n```\n\nThe validation hook (Python):\n\n```python\ndef validate_order(order: dict) -> list[str]:\n    errors = []\n    if order[\"total\"] < 0:\n        errors.append(\"total must be non-negative\")\n    return errors\n```\n\nAnd the feature-flag check:\n\n```js\nif (flags.enabled(\"orders-v2\")) {\n  route(request, ordersV2);\n}\n```\n",
+  "questions": [
+    {
+      "id": "reviewer",
+      "label": "Your name",
+      "required": true,
+      "tab": "Verdict",
+      "kind": "text",
+      "placeholder": "e.g. Ramy"
+    },
+    {
+      "id": "verdict",
+      "label": "Overall verdict",
+      "required": true,
+      "tab": "Verdict",
+      "kind": "single",
+      "options": [
+        {
+          "value": "Approve",
+          "markdown": "### Approve\n\nShip it as designed — no blocking concerns."
+        },
+        {
+          "value": "Approve with changes",
+          "markdown": "### Approve with changes\n\nDirection is right; land the noted changes before merging."
+        },
+        {
+          "value": "Request changes",
+          "markdown": "### Request changes\n\nBlocking concerns remain — needs another pass."
+        },
+        {
+          "value": "Needs discussion",
+          "markdown": "### Needs discussion\n\nOpen questions are better resolved live than in review."
+        }
+      ]
+    },
+    {
+      "id": "confidence",
+      "label": "Confidence in this design (1 = shaky, 5 = solid)",
+      "required": true,
+      "tab": "Verdict",
+      "kind": "scale",
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "id": "phases_ok",
+      "label": "Which rollout phases look safe to you?",
+      "tab": "Rollout",
+      "kind": "multi",
+      "options": [
+        {
+          "value": "Phase 1 — read path",
+          "markdown": "### Phase 1 — read path\n\nServe reads from the new service behind a flag. Fully reversible; lowest risk.\n\n```text\nclient ──▶ gateway ──▶ [flag: orders-v2?]\n                         │ on  ──▶ Orders Service ──▶ (Orders DB)\n                         └ off ──▶ Legacy monolith\n```"
+        },
+        {
+          "value": "Phase 2 — dual-write",
+          "markdown": "### Phase 2 — dual-write\n\nWrites go to both stores.\n\n```mermaid\nflowchart LR\n  A[Request] --> B[Legacy DB]\n  A --> C[(Orders DB)]\n```"
+        },
+        {
+          "value": "Phase 3 — cut over writes",
+          "markdown": "### Phase 3 — cut over writes\n\nThe new store becomes the source of truth. **Highest risk** — keep a fast rollback ready."
+        },
+        {
+          "value": "Phase 4 — decommission",
+          "markdown": "### Phase 4 — decommission\n\nRemove the legacy path once metrics are stable for two weeks."
+        }
+      ]
+    },
+    {
+      "id": "boundary_concerns",
+      "label": "Concerns about the orders/inventory/billing data boundary",
+      "tab": "Rollout",
+      "kind": "longtext",
+      "placeholder": "What could leak across the seam?"
+    },
+    {
+      "id": "dual_write",
+      "label": "Preferred dual-write strategy",
+      "tab": "Cutover",
+      "kind": "single",
+      "options": [
+        {
+          "value": "Synchronous",
+          "markdown": "### Synchronous\n\nWrite to both stores in the same request — simplest to reason about, but the request fails if either store is down.\n\n```mermaid\nflowchart LR\n  A[Request] --> B[Legacy DB]\n  A --> C[(Orders DB)]\n```"
+        },
+        {
+          "value": "Async via queue",
+          "markdown": "### Async via queue\n\nEnqueue the write; a worker mirrors it to the new store. Resilient, but eventually consistent.\n\n```mermaid\nflowchart LR\n  A[Request] --> B[Legacy DB]\n  A --> Q[[Queue]]\n  Q --> W[Worker] --> C[(Orders DB)]\n```"
+        },
+        {
+          "value": "CDC from the DB log",
+          "markdown": "### CDC from the DB log\n\nCapture changes from the legacy WAL and replay them — no app changes, but adds a pipeline to operate.\n\n```ts\nonChange(\"orders\", (row) => ordersDb.upsert(row));\n```"
+        }
+      ]
+    },
+    {
+      "id": "load_test",
+      "label": "Which services must be load-tested before cutover?",
+      "tab": "Cutover",
+      "kind": "multi",
+      "options": [
+        {
+          "value": "Orders"
+        },
+        {
+          "value": "Inventory"
+        },
+        {
+          "value": "Billing"
+        },
+        {
+          "value": "API Gateway"
+        }
+      ]
+    },
+    {
+      "id": "cutover_risk",
+      "label": "Estimated cutover risk (1 = trivial, 10 = scary)",
+      "required": true,
+      "tab": "Cutover",
+      "kind": "scale",
+      "min": 1,
+      "max": 10,
+      "step": 1
+    },
+    {
+      "id": "rollback_owner",
+      "label": "Who owns the rollback runbook?",
+      "tab": "Sign-off",
+      "kind": "text",
+      "placeholder": "Name or team"
+    },
+    {
+      "id": "diagram_gaps",
+      "label": "Anything missing from the architecture diagram?",
+      "tab": "Sign-off",
+      "kind": "longtext"
+    },
+    {
+      "id": "timeline",
+      "label": "When should this land?",
+      "required": true,
+      "tab": "Sign-off",
+      "kind": "single",
+      "options": [
+        {
+          "value": "This quarter"
+        },
+        {
+          "value": "Next quarter"
+        },
+        {
+          "value": "Later"
+        }
+      ]
+    },
+    {
+      "id": "signoffs",
+      "label": "Which sign-offs are required?",
+      "tab": "Sign-off",
+      "kind": "multi",
+      "options": [
+        {
+          "value": "Security"
+        },
+        {
+          "value": "SRE"
+        },
+        {
+          "value": "Data"
+        },
+        {
+          "value": "Product"
+        }
+      ]
+    },
+    {
+      "id": "effort",
+      "label": "Rough effort estimate (engineer-weeks)",
+      "tab": "Sign-off",
+      "kind": "scale",
+      "min": 1,
+      "max": 12,
+      "step": 1
+    },
+    {
+      "id": "notes",
+      "label": "Anything else?",
+      "tab": "Sign-off",
+      "kind": "longtext",
+      "placeholder": "Optional"
+    }
+  ]
+}

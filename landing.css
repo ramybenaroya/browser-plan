@@ -1,0 +1,239 @@
+/* Landing-page layout for the gh-pages showcase. Color tokens, fonts, the page
+   background and the .appbar/.brand chrome all come from the app's styles.css
+   (linked first), so this file only adds the marketing-page layout the app
+   doesn't have. All colors reference the shared --bg/--accent/… variables so the
+   page follows the same palette and light/dark mode as the embedded form. */
+
+.lp-nav {
+  margin-left: auto;
+  display: flex;
+  gap: 18px;
+}
+.lp-nav a {
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 560;
+  transition: color 0.15s ease;
+}
+.lp-nav a:hover {
+  color: var(--accent);
+}
+
+.lp-main {
+  padding: clamp(28px, 6vh, 64px) 0 64px;
+}
+
+/* Narrow reading column for the text sections (hero, install, define). */
+.lp-container {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* Hero ---------------------------------------------------------------------- */
+.lp-hero {
+  text-align: center;
+  padding: clamp(16px, 4vh, 40px) 0 clamp(24px, 5vh, 48px);
+}
+.lp-title {
+  margin: 0 0 18px;
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  line-height: 1.12;
+  font-weight: 680;
+  letter-spacing: -0.02em;
+}
+.lp-tagline {
+  margin: 0 auto;
+  max-width: 640px;
+  color: var(--text-dim);
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  line-height: 1.6;
+}
+.lp-hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.lp-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 11px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.05s ease;
+}
+.lp-btn:hover {
+  border-color: var(--accent);
+}
+.lp-btn:active {
+  transform: translateY(1px);
+}
+.lp-btn--primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: #fff;
+}
+.lp-btn--primary:hover {
+  background: var(--accent-hover);
+  border-color: transparent;
+}
+
+/* Sections ------------------------------------------------------------------ */
+.lp-section {
+  padding: clamp(28px, 5vh, 48px) 0;
+  border-top: 1px solid var(--border);
+}
+.lp-h2 {
+  margin: 0 0 14px;
+  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  font-weight: 660;
+  letter-spacing: -0.01em;
+}
+.lp-h3 {
+  margin: 26px 0 10px;
+  font-size: 1.1rem;
+  font-weight: 620;
+}
+.lp-section p {
+  margin: 0 0 14px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.lp-section code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+
+.lp-code {
+  margin: 0 0 16px;
+  padding: 16px 18px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  line-height: 1.55;
+}
+.lp-code code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.86rem;
+  color: var(--text);
+  background: none;
+  border: 0;
+  padding: 0;
+  white-space: pre;
+}
+
+.lp-kinds {
+  margin: 0 0 16px;
+  padding-left: 22px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+.lp-note {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+/* Showcase ------------------------------------------------------------------ */
+/* The live form breaks out of the 860px reading column into a wider band so the
+   embedded app (which itself widens for illustration panels) has room. */
+.lp-showcase {
+  /* Break out of the body's horizontal page gutter so the live form spans the
+     full viewport width (mirrors how .appbar goes full-bleed). */
+  margin: 0 calc(-1 * var(--page-gutter, clamp(16px, 4vw, 40px)));
+  padding: clamp(28px, 5vh, 48px) var(--page-gutter, clamp(16px, 4vw, 40px));
+  border-top: 1px solid var(--border);
+}
+.lp-showcase-inner {
+  max-width: none;
+  margin: 0 auto;
+}
+.lp-showcase p {
+  margin: 0 0 14px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.lp-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 18px 0 10px;
+  flex-wrap: wrap;
+}
+.lp-tab {
+  appearance: none;
+  padding: 9px 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text-dim);
+  font: inherit;
+  font-weight: 560;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.lp-tab:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.lp-tab[aria-selected="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.lp-tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.lp-example-desc {
+  min-height: 1.6em;
+  font-size: 0.95rem;
+}
+
+.lp-frame-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: var(--bg);
+}
+.lp-frame {
+  display: block;
+  width: 100%;
+  height: 760px;
+  border: 0;
+}
+
+/* Footer -------------------------------------------------------------------- */
+.lp-footer {
+  border-top: 1px solid var(--border);
+  padding: 28px 0 40px;
+  text-align: center;
+}
+.lp-footer p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+.lp-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.lp-footer a:hover {
+  text-decoration: underline;
+}
